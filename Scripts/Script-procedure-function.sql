@@ -146,6 +146,34 @@ create procedure cadLote(
 
 delimiter ;
 
+
+-- Procedure para realocar um lote de sementes de um armazém para outro
+
+delimiter $$
+create procedure moverLote(
+	IN pIdLote INT,
+	IN pIdNovoArm INT)
+    begin
+		if (select count(*) from lote where idLote = pIdLote) = 0 then
+			signal sqlstate '45000'
+				set message_text = 'Erro: Lote inexistente.';
+		end if;
+		if (select count(*) from armazem where idArmazem = pIdNovoArm) = 0 then
+			signal sqlstate '45000'
+				set message_text = 'Erro: armazém inexistente.';
+		end if;
+		if (select Armazem_idArmazem from lote where idLote = pIdLote) = pIdNovoArm then
+			signal sqlstate '45000'
+				set message_text = 'Erro: lote já está nesse armazém.';
+		end if;
+        
+		update Lote
+        set Armazem_idArmazem = pIdNovoArm
+        where idLote = pIdLote;
+    end $$
+
+delimiter ;
+
 -- Função para retornar quantas solicitações aquela cooperativa já fez
 
 delimiter $$
@@ -212,3 +240,72 @@ create function calcTotalPeso(arm int)
 	end $$
 delimiter ;
 
+-- Retorna a quantidade de lotes registrados em um armazém, em determinado semestre
+
+delimiter $$
+create function calcTotalLoteSemestre(ano int, sem int)
+	returns int deterministic
+    begin
+		declare vTotal int;
+		if sem = 1 then
+			select count(*) into vTotal
+            from Lote
+            where year(dataEntrada) = ano
+				and month(dataEntrada) between 1 and 6;
+		elseif sem = 2 then
+			select count(*) into Vtotal
+            from Lote
+            where year(dataEntrada) = ano
+				and month(dataentrada) between 7 and 12;
+		else
+			signal sqlstate '45000'
+				set message_text = 'Erro: semestre deve ser 1 ou 2.';
+		end if;
+        return vTotal;		
+    end $$
+delimiter ;
+
+-- Retorna quantas solicitações com um determinado status em um determinado ano
+
+delimiter $$
+	create function caclTotalSolicitacoesSafra(pStatus varchar(45), pSafra int)
+		returns int deterministic
+		begin
+			declare tSolic int;
+            if pStatus = 'PENDENTE' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 1
+					and Safra_idSafra = pSafra;
+			elseif pStatus = 'EM ANÁLISE' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 2
+					and Safra_idSafra = pSafra;
+			elseif pStatus = 'APROVADA' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 3
+					and Safra_idSafra = pSafra;
+			elseif pStatus = 'REJEITADA' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 4
+					and Safra_idSafra = pSafra;
+			else
+				signal sqlstate '45000'
+					set message_text = 'O status não existe.';
+			end if;
+            return tSolic;                
+        end $$
+delimiter ;
+
+delimiter $$
+create function calcPesoSafra(pSafra int, pTipo VARCHAR(45))
+	returns int deterministic
+	begin
+		declare pTotal int;
+        if pTipo = 'TODOS' then
+			select
+    end $$
+delimiter ;
