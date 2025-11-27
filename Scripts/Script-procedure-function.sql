@@ -99,7 +99,7 @@ create procedure cadArmazem_end(
 	begin
 		declare vidEnd INT;
 		insert into endereco (UF, cidade, bairro, rua, numero, comp, cep)
-		values (puf, pcidade, pbairro, prua, pnumero, pcomp, pcer);
+		values (puf, pcidade, pbairro, prua, pnumero, pcomp, pcep);
 		
 		SET vidEnd = last_insert_id();
 		
@@ -300,12 +300,78 @@ delimiter $$
         end $$
 delimiter ;
 
+-- Retorna o peso total de uma determinada safra
+
 delimiter $$
-create function calcPesoSafra(pSafra int, pTipo VARCHAR(45))
+create function calcPesoSafra(pSafra int)
 	returns int deterministic
 	begin
+		declare anoSafra int;
+        declare mesSafra int;
 		declare pTotal int;
-        if pTipo = 'TODOS' then
-			select
+			select Year(ano) into anoSafra
+				from safra where idSafra = pSafra;
+			select month(ano) into mesSafra
+				from safra where idSafra = pSafra;
+			if mesSafra = 1 then
+				select sum(peso) into pTotal
+					from lote where year(dataEntrada) = anoSafra and month(dataEntrada) between 1 and 6;
+			else
+				select sum(peso) into pTotal
+					from lote where year(dataEntrada) = anoSafra and month(dataEntrada) between 7 and 12;
+			end if;
+            return pTotal;
     end $$
 delimiter ;
+
+-- Retorna quantos lotes vão vencer em nos próximos X dias
+
+delimiter $$
+create function qtdLotesPrestesVencer(pDias int)
+	returns int deterministic
+		begin
+        declare totalLotes int;
+        
+        if pDias <= 0 then 
+			signal sqlstate '45000'
+				set message_text = 'O número de dias deve ser maior que zero.';
+		end if;
+			select count(*) into totalLotes
+				from lote
+					where dataVencimento between current_date() and current_date() + interval pDias Day;
+        return totalLotes;
+        end $$
+delimiter ;
+
+-- Retorna o percentual de lotes vencidos por armazém
+
+delimiter $$
+create function percLotesVencidosArmazem(pArm int)
+	returns decimal(5,2) deterministic
+		begin
+			declare pVencidos int;
+            declare vTotal int;
+            declare vPerc decimal(5,2);
+            
+            if (select count(*) from armazem where idArmazem = pArm)  = 0 then
+				signal sqlstate '45000'
+					set message_text = 'Armazém inexistente';
+			end if;
+			
+            select count(*) into vTotal
+				from lote
+					where Armazem_idArmazem = pArm;
+			IF vTotal = 0 THEN
+				RETURN 0.00;
+			END IF;
+            
+			select count(*) into pVencidos
+				from lote
+					where Armazem_idArmazem = pArm and dataVencimento < current_date();
+			set vPerc = (pVencidos * 100.0) / vTotal;
+            
+            return vPerc;
+        end $$
+delimiter ;
+
+
