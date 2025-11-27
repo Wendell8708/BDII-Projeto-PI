@@ -38,10 +38,10 @@ principais relatórios do seu projeto.(PENDENTE)
 ▪ Crie um script que irá criar e executar as procedures e 
 funções do seu banco de dados. Use o SP/SQL, como 
 colocado em sala de aula, e devem fazer no mínimo 14
-procedures e funções; (EM PRODUÇÃO)
+procedures e funções;  (PRONTO)
 
 • Elabore um script usando as funções e procedures 
-criadas. (PENDENTE) 
+criadas.  (PRONTO)
 
 ▪ Crie um script que irá criar e executar corretamente as 
 triggers do seu banco de dados. Use o SP/SQL, como colocado 
