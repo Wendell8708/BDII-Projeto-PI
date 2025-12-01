@@ -4,7 +4,7 @@
 [![Linguagem](https://img.shields.io/badge/Linguagem-SQL-blue)]()
 [![SGBD](https://img.shields.io/badge/SGBD-MySQL-orange)]()
 
-##Equipe
+## Equipe:
 - Anderson Bem
 - Wendell Barboza
 - Danielle Barbosa
