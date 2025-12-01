@@ -99,7 +99,7 @@ create procedure cadArmazem_end(
 	begin
 		declare vidEnd INT;
 		insert into endereco (UF, cidade, bairro, rua, numero, comp, cep)
-		values (puf, pcidade, pbairro, prua, pnumero, pcomp, pcer);
+		values (puf, pcidade, pbairro, prua, pnumero, pcomp, pcep);
 		
 		SET vidEnd = last_insert_id();
 		
@@ -142,6 +142,34 @@ create procedure cadLote(
         values (pDataEntrada, pDataVencimento, pPeso, pArmazem, pTipoSemente, pQr);
         
         
+    end $$
+
+delimiter ;
+
+
+-- Procedure para realocar um lote de sementes de um armazém para outro
+
+delimiter $$
+create procedure moverLote(
+	IN pIdLote INT,
+	IN pIdNovoArm INT)
+    begin
+		if (select count(*) from lote where idLote = pIdLote) = 0 then
+			signal sqlstate '45000'
+				set message_text = 'Erro: Lote inexistente.';
+		end if;
+		if (select count(*) from armazem where idArmazem = pIdNovoArm) = 0 then
+			signal sqlstate '45000'
+				set message_text = 'Erro: armazém inexistente.';
+		end if;
+		if (select Armazem_idArmazem from lote where idLote = pIdLote) = pIdNovoArm then
+			signal sqlstate '45000'
+				set message_text = 'Erro: lote já está nesse armazém.';
+		end if;
+        
+		update Lote
+        set Armazem_idArmazem = pIdNovoArm
+        where idLote = pIdLote;
     end $$
 
 delimiter ;
@@ -211,4 +239,139 @@ create function calcTotalPeso(arm int)
         return pesoTotal;
 	end $$
 delimiter ;
+
+-- Retorna a quantidade de lotes registrados em um armazém, em determinado semestre
+
+delimiter $$
+create function calcTotalLoteSemestre(ano int, sem int)
+	returns int deterministic
+    begin
+		declare vTotal int;
+		if sem = 1 then
+			select count(*) into vTotal
+            from Lote
+            where year(dataEntrada) = ano
+				and month(dataEntrada) between 1 and 6;
+		elseif sem = 2 then
+			select count(*) into Vtotal
+            from Lote
+            where year(dataEntrada) = ano
+				and month(dataentrada) between 7 and 12;
+		else
+			signal sqlstate '45000'
+				set message_text = 'Erro: semestre deve ser 1 ou 2.';
+		end if;
+        return vTotal;		
+    end $$
+delimiter ;
+
+-- Retorna quantas solicitações com um determinado status em um determinado ano
+
+delimiter $$
+	create function caclTotalSolicitacoesSafra(pStatus varchar(45), pSafra int)
+		returns int deterministic
+		begin
+			declare tSolic int;
+            if pStatus = 'PENDENTE' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 1
+					and Safra_idSafra = pSafra;
+			elseif pStatus = 'EM ANÁLISE' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 2
+					and Safra_idSafra = pSafra;
+			elseif pStatus = 'APROVADA' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 3
+					and Safra_idSafra = pSafra;
+			elseif pStatus = 'REJEITADA' then
+				select count(*) into tSolic
+				from solicitacao
+                where Status_idStatus = 4
+					and Safra_idSafra = pSafra;
+			else
+				signal sqlstate '45000'
+					set message_text = 'O status não existe.';
+			end if;
+            return tSolic;                
+        end $$
+delimiter ;
+
+-- Retorna o peso total de uma determinada safra
+
+delimiter $$
+create function calcPesoSafra(pSafra int)
+	returns int deterministic
+	begin
+		declare anoSafra int;
+        declare mesSafra int;
+		declare pTotal int;
+			select Year(ano) into anoSafra
+				from safra where idSafra = pSafra;
+			select month(ano) into mesSafra
+				from safra where idSafra = pSafra;
+			if mesSafra = 1 then
+				select sum(peso) into pTotal
+					from lote where year(dataEntrada) = anoSafra and month(dataEntrada) between 1 and 6;
+			else
+				select sum(peso) into pTotal
+					from lote where year(dataEntrada) = anoSafra and month(dataEntrada) between 7 and 12;
+			end if;
+            return pTotal;
+    end $$
+delimiter ;
+
+-- Retorna quantos lotes vão vencer em nos próximos X dias
+
+delimiter $$
+create function qtdLotesPrestesVencer(pDias int)
+	returns int deterministic
+		begin
+        declare totalLotes int;
+        
+        if pDias <= 0 then 
+			signal sqlstate '45000'
+				set message_text = 'O número de dias deve ser maior que zero.';
+		end if;
+			select count(*) into totalLotes
+				from lote
+					where dataVencimento between current_date() and current_date() + interval pDias Day;
+        return totalLotes;
+        end $$
+delimiter ;
+
+-- Retorna o percentual de lotes vencidos por armazém
+
+delimiter $$
+create function percLotesVencidosArmazem(pArm int)
+	returns decimal(5,2) deterministic
+		begin
+			declare pVencidos int;
+            declare vTotal int;
+            declare vPerc decimal(5,2);
+            
+            if (select count(*) from armazem where idArmazem = pArm)  = 0 then
+				signal sqlstate '45000'
+					set message_text = 'Armazém inexistente';
+			end if;
+			
+            select count(*) into vTotal
+				from lote
+					where Armazem_idArmazem = pArm;
+			IF vTotal = 0 THEN
+				RETURN 0.00;
+			END IF;
+            
+			select count(*) into pVencidos
+				from lote
+					where Armazem_idArmazem = pArm and dataVencimento < current_date();
+			set vPerc = (pVencidos * 100.0) / vTotal;
+            
+            return vPerc;
+        end $$
+delimiter ;
+
 

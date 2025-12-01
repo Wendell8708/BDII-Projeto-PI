@@ -291,6 +291,27 @@ INSERT INTO SolicitacaoTipoSemente (Solicitacao_idSolicitacao, TipoSemente_idTip
 (32,4,2400);
 
 
+INSERT INTO lote (peso, dataEntrada, dataVencimento, Armazem_idArmazem, TipoSemente_idTipoSemente)
+VALUES
+(50,  '2025-01-10', '2025-01-20', 1, 1), -- vencido
+(70,  '2025-01-15', '2025-02-01', 1, 1), -- vencido
+(30,  '2025-03-01', '2025-03-10', 1, 2), -- vencido
+
+(90,  '2025-04-10', '2025-12-31', 1, 2), -- válido
+(40,  '2025-05-15', '2026-01-10', 1, 3), -- válido
+(20,  '2025-06-01', '2025-12-10', 1, 3); -- válido
+
+
+INSERT INTO lote (peso, dataEntrada, dataVencimento, Armazem_idArmazem, TipoSemente_idTipoSemente)
+VALUES
+(60,  '2025-02-01', '2026-02-01', 2, 1),
+(80,  '2025-03-01', '2025-12-15', 2, 2),
+(55,  '2025-04-01', '2026-01-01', 2, 3),
+(95,  '2025-05-01', '2025-12-20', 2, 1);
+
+
+
+
 SET @senha := 'pbkdf2_sha256$1000000$1eUagG34tgiPuhD5bNOAp0$P91I72DRe43Bz/pnk7cfrA62i/TKpLqyP9KJIJeG/VU=';
 SET SQL_SAFE_UPDATES = 0;
 UPDATE Gestor
