@@ -28,23 +28,23 @@ O banco **AgroConecta** foi estruturado para representar o fluxo de sementes des
 ### 1. Gestor, Armazém e Endereço
 
 - **Gestor (CPF)** gerencia um ou mais **Armazéns (Armazem)** – relação **1:N**.  
-- Cada armazém possui um **endereço** próprio (tabela **Endereco**) e também pode estar associado a um **operador de armazém** (OperadorArmazem). :contentReference[oaicite:1]{index=1}  
+- Cada armazém possui um **endereço** próprio (tabela **Endereco**) e também pode estar associado a um **operador de armazém** (OperadorArmazem).
 
-> Há triggers que impedem, por exemplo, excluir um gestor que ainda possua armazéns ativos. :contentReference[oaicite:2]{index=2}  
+> Há triggers que impedem, por exemplo, excluir um gestor que ainda possua armazéns ativos.
 
 ### 2. Cooperativa, Endereço e Telefone
 
 - Uma **Cooperativa (CNPJ)** possui um endereço (Endereco) – relação **1:1**.  
 - Cooperativas podem ter **vários telefones**, e cada telefone pertence a uma cooperativa ou a um gestor – relação **1:N** via tabela **Telefone**.   
 
-Há triggers para impedir **telefones duplicados** por cooperativa/gestor. :contentReference[oaicite:4]{index=4}  
+Há triggers para impedir **telefones duplicados** por cooperativa/gestor. 
 
 ### 3. Armazém, Tipo de Semente, Lote e Safra
 
 - A tabela **Lote** representa lotes físicos de sementes armazenados:
   - Cada lote está vinculado a **um Armazém** e **um TipoSemente** – relações **1:N**.
-  - Lotes possuem **data de entrada**, **data de vencimento**, **peso** e um **QR Code** (`qr_payload`) único. :contentReference[oaicite:5]{index=5}  
-- A tabela **Safra** registra o período/ano da safra e é usada nas solicitações. :contentReference[oaicite:6]{index=6}  
+  - Lotes possuem **data de entrada**, **data de vencimento**, **peso** e um **QR Code** (`qr_payload`) único. 
+- A tabela **Safra** registra o período/ano da safra e é usada nas solicitações. 
 
 Triggers e procedures garantem, por exemplo:
 
@@ -55,14 +55,14 @@ Triggers e procedures garantem, por exemplo:
 
 - **Solicitacao** registra um pedido de sementes feito por uma cooperativa:
   - Ligada a **Cooperativa**, **Safra** e **Status** (ex.: Pendente, Aprovada, Rejeitada).   
-- Trigger garante que uma nova solicitação entre automaticamente como **“Pendente”**. :contentReference[oaicite:9]{index=9}  
+- Trigger garante que uma nova solicitação entre automaticamente como **“Pendente”**. 
 
 ### 5. SolicitaçãoTipoSemente e TipoSemente (N:N)
 
 - Uma **solicitação** pode envolver **vários tipos de sementes**, e cada tipo de semente pode aparecer em várias solicitações.  
 - Essa relação é modelada pela tabela **SolicitacaoTipoSemente**, que também armazena a **quantidade** de cada tipo.   
 
-Trigger impede que a soma das quantidades por tipo **ultrapasse o total solicitado** na Solicitação. :contentReference[oaicite:11]{index=11}  
+Trigger impede que a soma das quantidades por tipo **ultrapasse o total solicitado** na Solicitação. 
 
 ---
 
