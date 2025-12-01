@@ -4,6 +4,14 @@
 [![Linguagem](https://img.shields.io/badge/Linguagem-SQL-blue)]()
 [![SGBD](https://img.shields.io/badge/SGBD-MySQL-orange)]()
 
+##Equipe
+- Anderson Bem
+- Wendell Barboza
+- Danielle Barbosa
+- Laís Nayara
+- Rafael Barbosa
+
+
 ## 📘 Minimundo, Modelo Conceitual e Modelo Lógico – AgroConecta
 ## 🌱 1. Minimundo do Sistema AgroConecta
 
